@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/css/index.css">
-    <title>TopHat</title>
+    <link rel="stylesheet" href="../static/css/log.css">
+    <title>Create Course</title>
 </head>
 <body>
     <div class="header">
@@ -17,32 +17,30 @@
                 <li>
                     <a href="/">Home</a>
                 </li>
-                <li>
-                        <a href="/courses">Courses</a>
-                </li>
                 {% if user %}
                     <li>
                         <span>{{ user.username }}</span>
                     </li>
                     <li>
-                        <a href="/mycourses">My Courses</a>
-                    </li>
-                    <li>
-                        <a href="/create">Create Course</a>
-                    </li>
-                    <li>
                         <a href="/">Log out</a>
-                    </li>
-                {% else %}
-                    <li>
-                        <a href="/login">Login</a>
-                    </li>
-                    <li>
-                        <a href="/register">Register</a>
                     </li>
                 {% endif %}
             </ul>
         </div>
     </div>
+
+    <div id="loginDiv">
+        <form action="login.html" method="POST">
+            <h1>Create Course</h1>
+            <input id="coursename" name="coursename" type="text" placeholder="Course Name" autofocus required>
+            <p>
+            Description:
+            <p>
+            <input id="descript" name="descript" type="text" style="width: 500px; height: 200px" required>
+            <p>
+            <input type="submit" class="button" value="Submit">
+        </form>
+    </div>
+
 </body>
 </html>
