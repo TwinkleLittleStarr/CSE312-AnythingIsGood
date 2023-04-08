@@ -40,8 +40,7 @@ def register():
         Password = flask.request.form['password']
         # username should not be empty, password should have at least 6 characters
         if (not valid_text(Username) and len(Password) < 6):
-            print("go to line 43")
-            return render_template("register.html", signUpStatus="Invalid input")
+            return render_template("register.html", registerStatus="Invalid input")
         else:
             hashed_password = generate_password_hash(Password)  # generate password in hash
             # Insert new user into the database
