@@ -30,18 +30,20 @@ def index():  # homepage
 
 
 @app.route('/register', methods=['POST', 'GET'])
-def register():  # new users need to sign up, go to log in page after sign up
+def register():
+    # new users need to sign up, go to log in page after sign up
     if flask.request.method == 'POST':
         Username = escape_text(flask.request.form['username'])
         Password = flask.request.form['password']
-        if (not valid_text(Username) and len(Password) < 6):  # username should not be empty, password should has at least 6 characters
+
+        # username should not be empty, password should have at least 6 characters
+        if (not valid_text(Username) and len(Password) < 6):
             return render_template("register.html", signUpStatus="Invalid input")
 
         hashed_password = generate_password_hash(Password)  # generate password in hash
 
         # Insert new user into the database
-        user = {"username": Username, "password": hashed_password}
-        user_collection.insert_one(user)
+        user_collection.insert_one({"username": Username, "password": hashed_password})
 
         # Redirect to login page after registration
         return redirect("/login")
@@ -49,7 +51,7 @@ def register():  # new users need to sign up, go to log in page after sign up
         return render_template("register.html")
 
 @app.route('/login')
-def login():  # all users need to login in, go to personal page after login in go to
+def login():  # all users need to log in, go to personal page after login in go to
     return render_template("login.html")
 
 @app.route('/logout', methods=['GET'])
