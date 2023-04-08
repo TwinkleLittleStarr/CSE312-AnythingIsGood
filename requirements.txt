@@ -1,0 +1,6 @@
+flask_pymongo
+pymongo
+flask
+flask-socketio
+eventlet
+bcrypt
