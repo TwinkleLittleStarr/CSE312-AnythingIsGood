@@ -15,21 +15,21 @@
         <div class="nav">
             <ul>
                 <li>
-                    <a href="http://127.0.0.1:5000">Home</a>
+                    <a href="/">Home</a>
                 </li>
                 {% if user %}
                     <li>
                         <span>{{ user.username }}</span>
                     </li>
                     <li>
-                        <a href="http://127.0.0.1:5000">Log out</a>
+                        <a href="/">Log out</a>
                     </li>
                 {% else %}
                     <li>
-                        <a href="http://127.0.0.1:5000/login">Login</a>
+                        <a href="/login">Login</a>
                     </li>
                     <li>
-                        <a href="http://127.0.0.1:5000/register">Register</a>
+                        <a href="/register">Register</a>
                     </li>
                 {% endif %}
             </ul>
