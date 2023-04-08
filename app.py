@@ -10,6 +10,7 @@ user_collection = db['users']  # database to store the users
 
 app = Flask(__name__)
 
+
 def escape_text(text):  # comment security
     new_text = ''
     if '&' in text:  # security, replace & to &amp
@@ -20,9 +21,11 @@ def escape_text(text):  # comment security
         new_text = text.replace('>', '&gt')
     return new_text
 
+
 def valid_text(text):
     if len(text) != 0:
         return text
+
 
 @app.route('/')
 def index():  # homepage
@@ -35,24 +38,25 @@ def register():
     if flask.request.method == 'POST':
         Username = escape_text(flask.request.form['username'])
         Password = flask.request.form['password']
-
         # username should not be empty, password should have at least 6 characters
         if (not valid_text(Username) and len(Password) < 6):
+            print("go to line 43")
             return render_template("register.html", signUpStatus="Invalid input")
-
-        hashed_password = generate_password_hash(Password)  # generate password in hash
-
-        # Insert new user into the database
-        user_collection.insert_one({"username": Username, "password": hashed_password})
-
-        # Redirect to login page after registration
-        return redirect("/login")
+        else:
+            hashed_password = generate_password_hash(Password)  # generate password in hash
+            # Insert new user into the database
+            user_collection.insert_one({"username": Username, "password": hashed_password})
+            # Redirect to login page after registration
+            return render_template("login.html")
+            # return redirect("/login")
     else:
         return render_template("register.html")
+
 
 @app.route('/login')
 def login():  # all users need to log in, go to personal page after login in go to
     return render_template("login.html")
+
 
 @app.route('/logout', methods=['GET'])
 def logout():
