@@ -1,0 +1,37 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 80%;
+  padding: 10px 10%;
+  background-color: aquamarine;
+}
+
+.logo h1 {
+  color: red;
+  letter-spacing: 5px;
+  font-size: 35px;
+}
+
+.nav a {
+  text-decoration: none;
+  color: black;
+  font-size: 18px;
+  margin-left: 30px;
+}
+
+.nav ul {
+  list-style-type: none;
+}
+
+.nav ul li {
+    float: left;
+}

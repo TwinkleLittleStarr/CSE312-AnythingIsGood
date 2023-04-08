@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/log.css">
+    <title>Courses</title>
+</head>
+<body>
+    <div class="header">
+        <!-- logo model -->
+        <div class="logo">
+            <h1>TopHat</h1>
+        </div>
+        <!-- navigate -->
+        <div class="nav">
+            <ul>
+                <li>
+                    <a href="http://127.0.0.1:5000">Home</a>
+                </li>
+                {% if user %}
+                    <li>
+                        <span>{{ user.username }}</span>
+                    </li>
+                    <li>
+                        <a href="http://127.0.0.1:5000">Log out</a>
+                    </li>
+                {% else %}
+                    <li>
+                        <a href="http://127.0.0.1:5000/login">Login</a>
+                    </li>
+                    <li>
+                        <a href="http://127.0.0.1:5000/register">Register</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
