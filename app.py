@@ -2,6 +2,11 @@ from flask import Flask, render_template
 import pymongo
 import flask
 
+mongo_client = pymongo.MongoClient("mongo")
+db = mongo_client["cse312"]
+
+user_collection = db['users']  # database to store the users
+
 app = Flask(__name__)
 
 
@@ -26,4 +31,4 @@ def courses():  # put application's code here
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)  # localhost:8080
