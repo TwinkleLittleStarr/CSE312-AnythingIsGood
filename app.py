@@ -12,14 +12,9 @@ app = Flask(__name__)
 
 
 def escape_text(text):  # comment security
-    new_text = ''
-    if '&' in text:  # security, replace & to &amp
-        new_text = text.replace('&', "&amp")
-    if '<' in text:  # security, replace < to &lt
-        new_text = text.replace('<', '&lt')
-    if '>' in text:  # security, replace > to &gt
-        new_text = text.replace('>', '&gt')
-    return new_text
+    if (not isinstance(text, str)):
+        return
+    return text.replace('&', '&#38;').replace('<', '&#60;').replace('>', '&#62;')
 
 
 def valid_text(text):
