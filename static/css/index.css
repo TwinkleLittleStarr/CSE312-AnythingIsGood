@@ -33,5 +33,10 @@
 }
 
 .nav ul li {
-    float: left;
+  float: left;
+}
+
+.background img{
+  padding: 70px 220px 20px;
+  width: 70%;
 }

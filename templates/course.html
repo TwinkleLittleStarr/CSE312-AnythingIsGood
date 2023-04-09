@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/css/index.css">
-    <title>TopHat</title>
+    <link rel="stylesheet" href="../static/css/log.css">
+    <title>{{ course.name }}</title>
 </head>
 <body>
     <div class="header">
@@ -17,16 +17,7 @@
                 <li>
                     <a href="/">Home</a>
                 </li>
-                <li>
-                        <a href="/courses">Courses</a>
-                </li>
                 {% if user %}
-                    <li>
-                        <a href="/mycourses">My Courses</a>
-                    </li>
-                    <li>
-                        <a href="/create">Create Course</a>
-                    </li>
                     <li>
                         <a href="/">Log out</a>
                     </li>
@@ -42,8 +33,17 @@
         </div>
     </div>
 
-    <div class="background">
-        <img src="../static/images/UB.jpg" alt="UB">
+    <div class="course">
+        <h1>{{ course.name }}</h1>
+        <p>
+        Description:
+        <p>
+        <p>{{ course.descript }}</p>
+        <p>
+        <form action="/register" method="POST">
+        <input type="submit" class="button" value="Add">
+        <p>{{ addStatus }}</p>
+        </form>
     </div>
 </body>
 </html>

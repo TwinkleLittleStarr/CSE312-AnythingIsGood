@@ -19,9 +19,6 @@
                 </li>
                 {% if user %}
                     <li>
-                        <span>{{ user.username }}</span>
-                    </li>
-                    <li>
                         <a href="/">Log out</a>
                     </li>
                 {% else %}
@@ -34,6 +31,12 @@
                 {% endif %}
             </ul>
         </div>
+    </div>
+
+    <div class="course-display">
+        {% for course in courses %}
+            <>
+        {% endfor %}
     </div>
 </body>
 </html>

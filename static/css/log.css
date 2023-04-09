@@ -60,3 +60,14 @@ body {
     padding: 50px;
     margin-top: 150px;
 }
+
+.course {
+    justify-content: center;
+    align-items: center;
+    height: 350px;
+    background-color: rgba(75, 81, 95, 0.3);
+    box-shadow: 7px 7px 17px rgba(52, 56, 66, 0.5);
+    border-radius: 5px;
+    padding: 50px;
+    margin-top: 150px;
+}
