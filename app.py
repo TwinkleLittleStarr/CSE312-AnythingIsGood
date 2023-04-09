@@ -42,9 +42,11 @@ def register():
         if (not valid_text(Username) and len(Password) < 6):
             return render_template("register.html", registerStatus="Invalid input")
         else:
-            hashed_password = generate_password_hash(Password)  # generate password in hash
+            # hashed_password = generate_password_hash(Password)  # generate password in hash
             # Insert new user into the database
-            user_collection.insert_one({"username": Username, "password": hashed_password})
+            print("username", Username)
+            user_collection.insert_one({"username": Username, "password": Password})
+            print(user_collection)
             # Redirect to login page after registration
             return render_template("login.html")
             # return redirect("/login")
@@ -52,9 +54,28 @@ def register():
         return render_template("register.html")
 
 
-@app.route('/login')
-def login():  # all users need to log in, go to personal page after login in go to
-    return render_template("login.html")
+@app.route('/login', methods=['POST', 'GET'])
+def login():
+    if flask.request.method == 'POST':
+        username_list = list()
+        username = escape_text(flask.request.form['username'])
+        password = flask.request.form['password']
+        username_dic = user_collection.find_one({"username": username}, {"_id": 0})
+        print(username_dic)
+
+        if not username_dic:
+            # If the username does not exist in the database, return to the login page
+            return render_template("login.html", loginStatus="No Account, please register first")
+        else:
+            if username_dic['password'] != password:
+                # If password is incorrect, return to the login page
+                return render_template("login.html", loginStatus="Incorrect Password")
+            else:
+                # If both username and password are correct, go to personal homepage
+                return render_template("index.html", user=username_dic)
+
+    else:
+        return render_template("login.html")
 
 
 @app.route('/logout', methods=['GET'])
