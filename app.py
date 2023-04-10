@@ -98,15 +98,15 @@ def logout():  # click logout
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
     if flask.request.method == 'POST':
-        course_name = escape_text(flask.request.form['course_name'])  # user can add course name
+        course_name = escape_text(flask.request.form['coursename'])  # user can add course name
         course_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # course id, generate randomly
-        description = escape_text(flask.request.form['description'])  # user can add course description
+        description = escape_text(flask.request.form['descript'])  # user can add course description
 
         # user =
 
         # need to insert the instructor later, do the cookie first
-        course_collection.insert_one({"course_name": course_name, "course_id": course_id, "description": description})
-        return render_template("course.html", course_name=course_name, course_id=course_id)
+        course_collection.insert_one({"coursename": course_name, "course_id": course_id, "descript": description})
+        return render_template("courses.html", course_name=course_name, course_id=course_id)
     else:
         return render_template("create.html")
 
