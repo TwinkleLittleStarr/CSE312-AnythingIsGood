@@ -1,6 +1,6 @@
 import secrets
 import bcrypt
-from flask import Flask, render_template, redirect, make_response, session
+from flask import Flask, render_template, redirect, make_response, session, url_for
 import pymongo
 import flask
 from flask_socketio import SocketIO
@@ -99,12 +99,12 @@ def login():
                 session["token"] = hashedToken  # Create cookie for authentication token
                 cookies_collection.insert_one({"username": username, "authToken": hashedToken})
 
-                return render_template("index.html", user=username)
+                return render_template("index.html", username=username, authToken=hashedToken)
     else:
         token = session.get("token")
         if token and check_auth_token():
             username = cookies_collection.find_one({"authToken": token})['username']
-            return render_template("index.html", user=username)
+            return render_template("index.html", username=username)
 
         return render_template("login.html")
 

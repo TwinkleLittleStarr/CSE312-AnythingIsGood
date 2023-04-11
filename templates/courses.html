@@ -15,11 +15,11 @@
         <div class="nav">
             <ul>
                 <li>
-                    <a href="/">Home</a>
+                    <a href="{{ url_for('index') }}">Home</a>
                 </li>
-                {% if user %}
+                {% if session.get('token') %}
                     <li>
-                        <a href="/">Log out</a>
+                        <a href="{{ url_for('index') }}">Log out</a>
                     </li>
                 {% else %}
                     <li>
