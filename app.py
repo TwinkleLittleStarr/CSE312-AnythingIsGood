@@ -1,9 +1,8 @@
 import secrets
 import bcrypt
-from flask import Flask, render_template, redirect, make_response, session, url_for
+from flask import Flask, render_template, redirect, session, request, url_for
 import pymongo
 import flask
-from flask_socketio import SocketIO
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
@@ -13,7 +12,7 @@ db = mongo_client["cse312"]
 
 user_collection = db['users']  # database to store the username and password
 course_collection = db['courses']  # database to store the course
-cookies_collection = db["cookies"]
+cookies_collection = db["cookies"]  # database to store the cookies
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
@@ -29,7 +28,7 @@ def valid_text(text):
     if len(text) != 0:
         return text
 
-def check_auth_token():
+def check_cookies():
     token = session.get("token")
     if token:
         cookie = cookies_collection.find_one({"authToken": token})
@@ -87,22 +86,17 @@ def login():
                 # If password is incorrect, return to the login page
                 return render_template("login.html", loginStatus="Incorrect Password")
             else:
-                # If both username and password are correct, go to personal homepage
-                token = session.get("token")
-                if token and check_auth_token():
-                    # If authentication token is already present and valid, skip login and go to personal homepage
-                    return render_template("index.html", user=username)
-
                 token = secrets.token_hex(16)
                 hashedToken = bcrypt.hashpw(token.encode(), bcrypt.gensalt())
                 user_collection.update_one({"username": username}, {"$set": {"authToken": hashedToken}})
                 session["token"] = hashedToken  # Create cookie for authentication token
                 cookies_collection.insert_one({"username": username, "authToken": hashedToken})
 
-                return render_template("index.html", username=username, authToken=hashedToken)
+                return render_template("index.html", username=username)
     else:
+        # If both username and password are correct, go to personal homepage
         token = session.get("token")
-        if token and check_auth_token():
+        if token and check_cookies():
             username = cookies_collection.find_one({"authToken": token})['username']
             return render_template("index.html", username=username)
 
@@ -111,31 +105,67 @@ def login():
 
 @app.route('/logout', methods=['GET'])
 def logout():  # click logout
+    print("user log out")
     if flask.request.method == 'GET':
-        # unimplemented, may need something about cookie
+        print("in get method")
+        token = session.get('token')
+        if token:
+            print("in if token")
+            cookies_collection.delete_one({'token': token})  # Delete session cookie from database
+            session.pop('token', None)  # invalidate cookies
+            print("end  end  end")
         return render_template("index.html")
 
 
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
     if flask.request.method == 'POST':
-        course_name = escape_text(flask.request.form['coursename'])  # user can add course name
+        course_name = escape_text(flask.request.form['course_name'])  # user can add course name
         course_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # course id, generate randomly
         description = escape_text(flask.request.form['descript'])  # user can add course description
 
-        # user =
+        instructor = session.get('user')  # user in the cookie is the instructor of the course
 
-        # need to insert the instructor later, do the cookie first
-        course_collection.insert_one({"coursename": course_name, "course_id": course_id, "descript": description})
-        return render_template("courses.html", course_name=course_name, course_id=course_id, des=description)
+        course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
+        return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description)
     else:
         return render_template("create.html")
 
 
-@app.route('/courses', methods=['GET'])
+@app.route('/courses', methods=['GET', 'POST'])
 def courses():  # display all courses
-    all_courses = course_collection.find({}, {"_id": 0})
-    return render_template("courses.html", course=all_courses)
+    if flask.request.method == 'GET':
+        all_courses = course_collection.find({}, {"_id": 0})
+        return render_template("courses.html", all_courses=all_courses)
+    # else:  # if post then go to selected course page
+    #     course_name = request.form['course_name']
+    #     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+    #     if selected_course:
+    #         instructor = selected_course.get('instructor')
+    #         description = selected_course.get('descript')
+    #         course_id = selected_course.get('course_id')
+    #
+    #         # in the particular course page, need to display course name, course description, instructor and course id
+    #         return render_template("course.html", course_name=course_name, instructor=instructor, description=description, course_id=course_id)
+
+
+@app.route('/course', methods=['GET', 'POST'])
+def course():
+    course_name = request.full_path
+    course_name =course_name.split("=")[1]
+    if flask.request.method == 'GET':
+        # print("into get", course_name)
+        selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+        if selected_course:
+            instructor = selected_course.get('instructor')
+            description = selected_course.get('descript')
+            course_id = selected_course.get('course_id')
+            return render_template("course.html", course_name=course_name, instructor=instructor, description=description, course_id=course_id)
+
+
+@app.route('/my', methods=['GET', 'POST'])
+def my():
+    return render_template("my.html")
 
 
 if __name__ == '__main__':

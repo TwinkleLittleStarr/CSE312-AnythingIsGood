@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../static/css/log.css">
-    <title>{{ course.name }}</title>
+    <title>{{ course_name }}</title>
 </head>
 <body>
     <div class="header">
@@ -36,9 +36,13 @@
     <div class="course">
         <h1>{{ course_name }}</h1>
         <p>
+        instructor:
+        <p>
+        <p>{{ instructor }}</p>
+        <p>
         Description:
         <p>
-        <p>{{ des }}</p>
+        <p>{{ descript }}</p>
         <p>
         <form action="/register" method="POST">
         <input type="submit" class="button" value="Add">
