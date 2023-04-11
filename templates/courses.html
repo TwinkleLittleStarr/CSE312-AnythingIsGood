@@ -19,7 +19,7 @@
                 </li>
                 {% if session.get('token') %}
                     <li>
-                        <a href="{{ url_for('index') }}">Log out</a>
+                        <a href="{{ url_for('logout') }}">Log out</a>
                     </li>
                 {% else %}
                     <li>
@@ -35,7 +35,7 @@
 
     <div class="course-display">
         {% for course in courses %}
-            <>
+            <h2>{{ course.coursename }}</h2>
         {% endfor %}
     </div>
 </body>

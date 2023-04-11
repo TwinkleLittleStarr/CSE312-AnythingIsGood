@@ -127,7 +127,7 @@ def create():  # users can create courses
 
         # need to insert the instructor later, do the cookie first
         course_collection.insert_one({"coursename": course_name, "course_id": course_id, "descript": description})
-        return render_template("courses.html", course_name=course_name, course_id=course_id)
+        return render_template("courses.html", course_name=course_name, course_id=course_id, des=description)
     else:
         return render_template("create.html")
 

@@ -19,7 +19,7 @@
                 </li>
                 {% if session.get('token')%}
                     <li>
-                        <a href="{{ url_for('index') }}">Log out</a>
+                        <a href="{{ url_for('logout') }}">Log out</a>
                     </li>
                 {% else %}
                     <li>
@@ -34,11 +34,11 @@
     </div>
 
     <div class="course">
-        <h1>{{ course.name }}</h1>
+        <h1>{{ course_name }}</h1>
         <p>
         Description:
         <p>
-        <p>{{ course.descript }}</p>
+        <p>{{ des }}</p>
         <p>
         <form action="/register" method="POST">
         <input type="submit" class="button" value="Add">
