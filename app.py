@@ -13,6 +13,7 @@ db = mongo_client["cse312"]
 
 user_collection = db['users']  # database to store the username and password
 course_collection = db['courses']  # database to store the course
+cookies_collection = db["cookies"]
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
@@ -27,6 +28,14 @@ def escape_text(text):  # comment security
 def valid_text(text):
     if len(text) != 0:
         return text
+
+def check_auth_token():
+    token = session.get("token")
+    if token:
+        cookie = cookies_collection.find_one({"authToken": token})
+        if cookie:
+            return True
+    return False
 
 
 @app.route('/')
@@ -79,12 +88,24 @@ def login():
                 return render_template("login.html", loginStatus="Incorrect Password")
             else:
                 # If both username and password are correct, go to personal homepage
+                token = session.get("token")
+                if token and check_auth_token():
+                    # If authentication token is already present and valid, skip login and go to personal homepage
+                    return render_template("index.html", user=username)
+
                 token = secrets.token_hex(16)
                 hashedToken = bcrypt.hashpw(token.encode(), bcrypt.gensalt())
                 user_collection.update_one({"username": username}, {"$set": {"authToken": hashedToken}})
                 session["token"] = hashedToken  # Create cookie for authentication token
-                return render_template("index.html", user=username_dic)
+                cookies_collection.insert_one({"username": username, "authToken": hashedToken})
+
+                return render_template("index.html", user=username)
     else:
+        token = session.get("token")
+        if token and check_auth_token():
+            username = cookies_collection.find_one({"authToken": token})['username']
+            return render_template("index.html", user=username)
+
         return render_template("login.html")
 
 
