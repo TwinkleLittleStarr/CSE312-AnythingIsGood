@@ -123,6 +123,7 @@ def create():  # users can create courses
 
         instructor = session.get('username')  # user in the cookie is the instructor of the course
 
+        user_collection.insert_one({"username": instructor, "course_name": course_name})
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
         return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description)
     else:
@@ -146,7 +147,6 @@ def course():
     course_id = selected_course.get('course_id')
 
     if flask.request.method == 'POST':
-        print("in to POST")
         # POST when users click enroll
         student = session.get('username')
         if student == selected_course.get('instructor'):
@@ -161,21 +161,21 @@ def course():
                 user_collection.insert_one({"username": student, "course_name": course_name})
                 # Insert the student name in the course's database
                 course_collection.update_one({"course_name": course_name}, {"$push": {"students": student}})
-                # my_course = user_collection.find_one({"username": student})
-                return render_template("my.html", course_name=course_name, instructor=instructor, descript=description, my_course=my_course)
+                my_course = user_collection.find({"username": student})
+                return render_template("my.html", my_course=my_course)
 
     else:
         if selected_course:
-
             # display the course name, instructor, course id, and description
             return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, course_id=course_id)
 
-@app.route('/my', methods=['GET'])
+@app.route('/my', methods=['GET', 'POST'])
 def my():
-    student = session.get('username')
-    # Retrieve the enrolled courses for the logged-in user
-    enrolled_courses = user_collection.find({"username": student})
-    return render_template("my.html", courses=enrolled_courses)
+    if flask.request.method == 'GET':
+        student = session.get('username')
+        # Retrieve the enrolled courses for the logged-in user
+        my_course = user_collection.find({"username": student})
+        return render_template("my.html", my_course=my_course)
 
 
 if __name__ == '__main__':
