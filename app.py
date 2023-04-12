@@ -50,7 +50,7 @@ def register():
         password = flask.request.form['password']
 
         # username should not be empty, password should have at least 6 characters
-        if (not valid_text(username) and len(password) < 6):
+        if (not valid_text(username) or len(password) < 6):
             return render_template("register.html", registerStatus="Invalid input")
 
         dic_username = list(user_collection.find({"username": username}))
@@ -90,6 +90,7 @@ def login():
                 hashedToken = bcrypt.hashpw(token.encode(), bcrypt.gensalt())
                 user_collection.update_one({"username": username}, {"$set": {"authToken": hashedToken}})
                 session["token"] = hashedToken  # Create cookie for authentication token
+                session["username"] = username
                 cookies_collection.insert_one({"username": username, "authToken": hashedToken})
 
                 return render_template("index.html", username=username)
@@ -105,15 +106,11 @@ def login():
 
 @app.route('/logout', methods=['GET'])
 def logout():  # click logout
-    print("user log out")
     if flask.request.method == 'GET':
-        print("in get method")
         token = session.get('token')
         if token:
-            print("in if token")
             cookies_collection.delete_one({'token': token})  # Delete session cookie from database
             session.pop('token', None)  # invalidate cookies
-            print("end  end  end")
         return render_template("index.html")
 
 
@@ -124,7 +121,7 @@ def create():  # users can create courses
         course_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # course id, generate randomly
         description = escape_text(flask.request.form['descript'])  # user can add course description
 
-        instructor = session.get('user')  # user in the cookie is the instructor of the course
+        instructor = session.get('username')  # user in the cookie is the instructor of the course
 
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
         return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description)
@@ -137,35 +134,48 @@ def courses():  # display all courses
     if flask.request.method == 'GET':
         all_courses = course_collection.find({}, {"_id": 0})
         return render_template("courses.html", all_courses=all_courses)
-    # else:  # if post then go to selected course page
-    #     course_name = request.form['course_name']
-    #     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
-    #     if selected_course:
-    #         instructor = selected_course.get('instructor')
-    #         description = selected_course.get('descript')
-    #         course_id = selected_course.get('course_id')
-    #
-    #         # in the particular course page, need to display course name, course description, instructor and course id
-    #         return render_template("course.html", course_name=course_name, instructor=instructor, description=description, course_id=course_id)
-
 
 @app.route('/course', methods=['GET', 'POST'])
 def course():
     course_name = request.full_path
     course_name =course_name.split("=")[1]
-    if flask.request.method == 'GET':
-        # print("into get", course_name)
-        selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+    selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+
+    instructor = selected_course.get('instructor')
+    description = selected_course.get('descript')
+    course_id = selected_course.get('course_id')
+
+    if flask.request.method == 'POST':
+        print("in to POST")
+        # POST when users click enroll
+        student = session.get('username')
+        if student == selected_course.get('instructor'):
+            return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, courseStatus="You are the instructor")
+        else:
+            # Check if the student is already enrolled in the course
+            enrolled_student = user_collection.find_one({"username": student, "course_name": course_name})
+            if enrolled_student:
+                return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, courseStatus="You are already enrolled in this course")
+            else:
+                # Insert the course name in user's database
+                user_collection.insert_one({"username": student, "course_name": course_name})
+                # Insert the student name in the course's database
+                course_collection.update_one({"course_name": course_name}, {"$push": {"students": student}})
+                # my_course = user_collection.find_one({"username": student})
+                return render_template("my.html", course_name=course_name, instructor=instructor, descript=description, my_course=my_course)
+
+    else:
         if selected_course:
-            instructor = selected_course.get('instructor')
-            description = selected_course.get('descript')
-            course_id = selected_course.get('course_id')
-            return render_template("course.html", course_name=course_name, instructor=instructor, description=description, course_id=course_id)
 
+            # display the course name, instructor, course id, and description
+            return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, course_id=course_id)
 
-@app.route('/my', methods=['GET', 'POST'])
+@app.route('/my', methods=['GET'])
 def my():
-    return render_template("my.html")
+    student = session.get('username')
+    # Retrieve the enrolled courses for the logged-in user
+    enrolled_courses = user_collection.find({"username": student})
+    return render_template("my.html", courses=enrolled_courses)
 
 
 if __name__ == '__main__':

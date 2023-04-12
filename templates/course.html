@@ -44,9 +44,9 @@
         <p>
         <p>{{ descript }}</p>
         <p>
-        <form action="/register" method="POST">
-        <input type="submit" class="button" value="Add">
-        <p>{{ addStatus }}</p>
+        <form action="/course?course_name={{ course_name }}" method="POST">
+        <input type="submit" class="button" value="Enroll">
+        <p>{{ courseStatus }}</p>
         </form>
     </div>
 </body>

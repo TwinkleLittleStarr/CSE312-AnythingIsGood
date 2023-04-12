@@ -26,5 +26,11 @@
             </ul>
         </div>
     </div>
+
+    <div class="course-display">
+        {% for i in my_course %}
+            <a href="/course?course_name={{ i.course_name }}">{{ i.course_name }}</a>
+        {% endfor %}
+    </div>
 </body>
 </html>
