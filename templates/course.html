@@ -48,6 +48,10 @@
         <input type="submit" class="button" value="Enroll">
         <p>{{ courseStatus }}</p>
         </form>
+        <p>
+        {% if incourse %}
+        <a href="{{ url_for('question') }}">Questions</a>
+        {% endif %}
     </div>
 </body>
 </html>
