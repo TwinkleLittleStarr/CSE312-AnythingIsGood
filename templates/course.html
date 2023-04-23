@@ -44,13 +44,12 @@
         <p>
         <p>{{ descript }}</p>
         <p>
+        {% if result %}
+        <a href="/question">Questions</a>
+        {% else %}
         <form action="/course?course_name={{ course_name }}" method="POST">
         <input type="submit" class="button" value="Enroll">
-        <p>{{ courseStatus }}</p>
         </form>
-        <p>
-        {% if incourse %}
-        <a href="{{ url_for('question') }}">Questions</a>
         {% endif %}
     </div>
 </body>

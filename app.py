@@ -17,6 +17,12 @@ cookies_collection = db["cookies"]  # database to store the cookies
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
 
+def user_in_course(username, course_name):
+    result = user_collection.find_one({"username": username, "course_name": course_name})
+    if result:
+        return True
+    else:
+        return False
 
 def escape_text(text):  # comment security
     if (not isinstance(text, str)):
@@ -155,7 +161,7 @@ def course():
             # Check if the student is already enrolled in the course
             enrolled_student = user_collection.find_one({"username": student, "course_name": course_name})
             if enrolled_student:
-                return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, courseStatus="You are already enrolled in this course")
+                return render_template("course.html", course_name=course_name, instructor=instructor, descript=description)
             else:
                 # Insert the course name in user's database
                 user_collection.insert_one({"username": student, "course_name": course_name})
@@ -166,8 +172,10 @@ def course():
 
     else:
         if selected_course:
+            student = session.get('username')
+            result = user_in_course(student, course_name)
             # display the course name, instructor, course id, and description
-            return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, course_id=course_id)
+            return render_template("course.html", course_name=course_name, instructor=instructor, descript=description, course_id=course_id, result=result)
 
 @app.route('/my', methods=['GET', 'POST'])
 def my():
