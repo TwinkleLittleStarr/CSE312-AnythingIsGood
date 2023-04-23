@@ -131,7 +131,7 @@ def create():  # users can create courses
 
         user_collection.insert_one({"username": instructor, "course_name": course_name})
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
-        return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description)
+        return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description, result=True)
     else:
         return render_template("create.html")
 
