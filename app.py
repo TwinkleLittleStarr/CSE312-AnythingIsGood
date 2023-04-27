@@ -6,6 +6,7 @@ import flask
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
+from flask_socketio import SocketIO, emit
 
 mongo_client = pymongo.MongoClient("mongo")
 db = mongo_client["cse312"]
@@ -13,9 +14,12 @@ db = mongo_client["cse312"]
 user_collection = db['users']  # database to store the username and password
 course_collection = db['courses']  # database to store the course
 cookies_collection = db["cookies"]  # database to store the cookies
+questions_collection = db["questions"]  # database to store the questions
+answers_collection = db["answers"]
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
+socketio = SocketIO(app)
 
 def user_in_course(username, course_name):
     result = user_collection.find_one({"username": username, "course_name": course_name})
@@ -184,6 +188,88 @@ def my():
         # Retrieve the enrolled courses for the logged-in user
         my_course = user_collection.find({"username": student})
         return render_template("my.html", my_course=my_course)
+
+@app.route('/question', methods=['GET'])
+def question_answer():
+    if flask.request.method == 'GET':
+        return render_template('question.html')
+
+
+@socketio.on('question_event')
+def question_event(data):
+    action = data['action']
+
+    if action == 'create_question':
+        course_name = data['course_name']
+        question_text = data['question_text']
+        options = data['options']
+        correct_answer = data['correct_answer']
+        instructor = session.get('username')
+
+        # Save the question in the questions collection
+        question = {
+            'course_name': course_name,
+            'instructor': instructor,
+            'question_text': question_text,
+            'options': options,
+            'correct_answer': correct_answer,
+            'active_or_not': False  # The question is inactive by default
+        }
+        # insert to the questions database
+        result = questions_collection.insert_one(question)
+        question_id = result.inserted_id
+
+        # Send the question_id back to the client
+        emit('question_created', {'question_id': str(question_id)})
+
+        # send the question to the students
+        emit('new_question', {'question': question, 'options': options, 'correct_answer': correct_answer}, send=True)
+
+    elif action == 'start_question':
+        question_id = data['question_id']
+
+        # Set the 'active_or_not' field of the question to True
+        questions_collection.update_one(
+            {'_id': question_id},
+            {'$set': {'active_or_not': True}}  # start question, change to true, students can answer questions
+        )
+
+        # send the start message to the students
+        emit('question_started', {'question_id': question_id}, send=True)
+
+    elif action == 'stop_question':
+        question_id = data['question_id']
+
+        questions_collection.update_one(
+            {'_id': question_id},
+            {'$set': {'active_or_not': False}}  # stop questions, change to false, students can not answer questions
+        )
+        # need to implement "Any answers submitted after the question is stopped do not count" later
+
+        # send the stop message to the students
+        emit('question_stopped', {'question_id': question_id}, send=True)
+
+    elif action == 'submit_answer':
+        question_id = data['question_id']
+        answer = data['answer']
+        username = session.get('username')
+
+        # Check if the question is still active
+        question = questions_collection.find_one({'_id': question_id})
+        if question['active_or_not']:
+            # Save the answer in the answers collection if the question is still active
+            answer_data = {
+                'question_id': question_id,
+                'username': username,
+                'answer': answer
+            }
+            answers_collection.insert_one(answer_data)
+
+            # Send a message to the student that their answer was accepted
+            emit('answer_accepted', {'question_id': question_id})
+        else:
+            # Send a message to the student that their answer was not accepted because the question was stopped
+            emit('answer_not_accepted', {'question_id': question_id})
 
 
 if __name__ == '__main__':

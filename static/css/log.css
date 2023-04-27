@@ -75,3 +75,26 @@ body {
 .course-display {
     padding: 100px;
 }
+
+
+#instructor-section {
+    padding: 150px;
+    margin-bottom: 40px;
+}
+
+#instructor-section h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#create-question-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#create-question-form input, #create-question-form select {
+    padding: 5px;
+    font-size: 14px;
+}
+
