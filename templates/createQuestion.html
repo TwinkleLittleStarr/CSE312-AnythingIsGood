@@ -36,9 +36,16 @@
                 <label for="question_text">Question Text:</label>
                 <input type="text" id="question_text" name="question_text" required>
                 <br>
-                <label for="options">Options (separate with commas):</label>
-                <input type="text" id="options" name="options" required placeholder="Option A, Option B, Option C">
+
+                <label for="options">Options:</label>
                 <br>
+                A <input type="text" id="option1" name="options[]" required>
+                <br>
+                B <input type="text" id="option2" name="options[]" required>
+                <br>
+                C <input type="text" id="option3" name="options[]" required>
+                <br>
+
                 <label for="correct_option">Correct Option (A, B or C):</label>
                 <input type="text" id="correct_option" name="correct_option" pattern="[A-Ca-c]" required>
                 <br>

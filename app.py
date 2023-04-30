@@ -235,6 +235,7 @@ def create_question():
         course_name = flask.request.form['course_name']
         question_text = escape_text(flask.request.form['question_text'])
         options = flask.request.form.getlist('options[]')
+        print("options", options)
         correct_option = escape_text(flask.request.form['correct_option'])
 
         questions_collection.insert_one({

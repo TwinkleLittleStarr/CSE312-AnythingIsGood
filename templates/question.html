@@ -29,12 +29,43 @@
 
     <div class="question-display">
         <h1>{{ question.question_text }}</h1>
-        <ol type="A">
-            {% for option in question.options %}
-                <li>{{ option }}</li>
-            {% endfor %}
-        </ol>
+        <input type="radio" id="optionA" name="option" value="A">
+        <label for="optionA">A</label>
+        {{ question.options[0] }}
+        <br>
+        <input type="radio" id="optionB" name="option" value="B">
+        <label for="optionB">B</label>
+        {{ question.options[1] }}
+        <br>
+        <input type="radio" id="optionC" name="option" value="C">
+        <label for="optionC">C</label>
+        {{ question.options[2] }}
+        <br>
+        <button id="submit_answer">submit</button>
     </div>
+
+{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>#}
+{#    <script>#}
+{#        document.addEventListener('DOMContentLoaded', () => {#}
+{#            const socket = io();#}
+{##}
+{#            document.getElementById('submit_answer').addEventListener('click', () => {#}
+{#                const selectedOption = document.querySelector('input[name="option"]:checked');#}
+{#                if (selectedOption) {#}
+{#                    const user_id = ...;#}
+{#                    const question_id = ...;#}
+{##}
+{#                    socket.emit('submit_answer', {#}
+{#                        user_id: user_id,#}
+{#                        question_id: question_id,#}
+{#                        answer: selectedOption.value#}
+{#                    });#}
+{#                } else {#}
+{#                    alert('Please choose a choice');#}
+{#                }#}
+{#            });#}
+{#        });#}
+{#    </script>#}
 
 </body>
 </html>
