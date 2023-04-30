@@ -228,32 +228,25 @@ def question():
             return render_template("question.html", user_role="student", course_name=course_name)
 
 
-@app.route('/createQuestion', methods=['GET', 'POST'])
+@app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():
     if flask.request.method == 'POST':
-        data = request.get_json()
+        question_text = escape_text(flask.request.form['question_text'])
+        options = flask.request.form.getlist('options[]')
+        correct_option = escape_text(flask.request.form['correct_option'])
 
-        question = {
-            'question_text': data['question_text'],
-            'options': data['options'],
-            'correct_option': data['correct_option'],
-            'start_time': None,
-            'end_time': None,
+        questions_collection.insert_one({
+            "question_text": question_text,
+            "options": options,
+            'correct_option': correct_option,
             'is_active': False
-        }
-
-        # Insert the question into the database
-        question_insert_result = questions_collection.insert_one(question)
-
-        selected_course = course_collection.find_one({"_id": data['course_id']})
-        course_id = selected_course.get('course_id')
-
-        # Update the question with the course_id
-        questions_collection.update_one({"_id": question_insert_result.inserted_id}, {"$set": {"course_id": course_id}})
+        })
 
         return render_template("createQuestion.html", question=question)
+
     else:
         return render_template("createQuestion.html")
+
 
 @socketio.on('question_event')
 def handle_question_event(data):
