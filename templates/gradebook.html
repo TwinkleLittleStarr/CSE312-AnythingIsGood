@@ -27,9 +27,13 @@
     </div>
 
     <div class="display">
+    {% if role %}
         {% for student in students %}
             <li>{{ student }}</li>
         {% endfor %}
+    {% else %}
+        
+    {% endif %}
     </div>
 </body>
 </html>

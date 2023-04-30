@@ -147,7 +147,7 @@ def create():  # users can create courses
 
         user_collection.insert_one({"username": instructor, "course_name": course_name})
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
-        return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description, result=True)
+        return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description, result=True, role=True)
     else:
         return render_template("create.html")
 
@@ -214,18 +214,20 @@ def my():
 def question():
     if flask.request.method == 'GET':
         user = session.get('username')
-        print("user", user)
         course_name = request.full_path.split("=")[1]
+
         print('course_name2 -->', course_name)
         # course_name = course_name.split("=")[1]
         selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+        courseQuestions = questions_collection.find_one({"course_name": course_name})
+        print("questions", courseQuestions)
 
         if user == selected_course.get('instructor'):
             # The user is an instructor
-            return render_template("question.html", user_role="instructor", course_name=course_name)
+            return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions)
         else:
             # The user is a student
-            return render_template("question.html", user_role="student", course_name=course_name)
+            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions)
 
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():

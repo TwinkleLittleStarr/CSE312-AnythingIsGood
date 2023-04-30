@@ -47,7 +47,7 @@
         {% if result %}
             <a href="/question?course_name={{ course_name }}">Questions</a>
             {% if role %}
-                <a href="/createQuestion">Create Questions</a>
+                <a href="/createQuestion?course_name={{ course_name }}">Create Questions</a>
                 <a href="/gradebook">GradeBook</a>
             {% endif %}
         {% else %}
