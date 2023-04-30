@@ -214,8 +214,8 @@ def my():
 def question():
     if flask.request.method == 'GET':
         user = session.get('username')
-        # course_name = request.full_path
-        course_name = request.args.get("course_name")
+        print("user", user)
+        course_name = request.full_path.split("=")[1]
         print('course_name2 -->', course_name)
         # course_name = course_name.split("=")[1]
         selected_course = course_collection.find_one({"course_name": course_name})  # find course name
@@ -227,22 +227,23 @@ def question():
             # The user is a student
             return render_template("question.html", user_role="student", course_name=course_name)
 
-
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():
     if flask.request.method == 'POST':
+        course_name = flask.request.form['course_name']
         question_text = escape_text(flask.request.form['question_text'])
         options = flask.request.form.getlist('options[]')
         correct_option = escape_text(flask.request.form['correct_option'])
 
         questions_collection.insert_one({
+            "course_name": course_name,
             "question_text": question_text,
             "options": options,
             'correct_option': correct_option,
             'is_active': False
         })
 
-        return render_template("createQuestion.html", question=question)
+        return render_template("question.html")
 
     else:
         return render_template("createQuestion.html")
