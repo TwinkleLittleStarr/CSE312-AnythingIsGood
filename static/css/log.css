@@ -76,6 +76,9 @@ body {
     padding: 100px;
 }
 
+.question-display {
+    padding: 100px;
+}
 
 #instructor-section {
     padding: 150px;
@@ -87,14 +90,14 @@ body {
     margin-bottom: 20px;
 }
 
-#create-question-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+/*#create-question-form {*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*    gap: 10px;*/
+/*}*/
 
-#create-question-form input, #create-question-form select {
-    padding: 5px;
-    font-size: 14px;
-}
+/*#create-question-form input, #create-question-form select {*/
+/*    padding: 5px;*/
+/*    font-size: 14px;*/
+/*}*/
 

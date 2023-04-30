@@ -45,11 +45,15 @@
         <p>{{ descript }}</p>
         <p>
         {% if result %}
-        <a href="/question?course_name={{ course_name }}">Questions</a>
+            <a href="/question?course_name={{ course_name }}">Questions</a>
+            {% if role %}
+                <a href="/createQuestion">Create Questions</a>
+                <a href="/gradebook">GradeBook</a>
+            {% endif %}
         {% else %}
-        <form action="/course?course_name={{ course_name }}" method="POST">
-        <input type="submit" class="button" value="Enroll">
-        </form>
+            <form action="/course?course_name={{ course_name }}" method="POST">
+            <input type="submit" class="button" value="Enroll">
+            </form>
         {% endif %}
     </div>
 </body>

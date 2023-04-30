@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="../static/css/log.css">
-    <title>Questions</title>
+    <title>Grade book</title>
 </head>
 <body>
     <div class="header">
@@ -27,14 +26,10 @@
         </div>
     </div>
 
-    <div class="question-display">
-        <h1>{{ question.question_text }}</h1>
-        <ol type="A">
-            {% for option in question.options %}
-                <li>{{ option }}</li>
-            {% endfor %}
-        </ol>
+    <div class="display">
+        {% for student in students %}
+            <li>{{ student }}</li>
+        {% endfor %}
     </div>
-
 </body>
 </html>
