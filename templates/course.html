@@ -45,7 +45,7 @@
         <p>{{ descript }}</p>
         <p>
         {% if result %}
-        <a href="/question">Questions</a>
+        <a href="/question?course_name={{ course_name }}">Questions</a>
         {% else %}
         <form action="/course?course_name={{ course_name }}" method="POST">
         <input type="submit" class="button" value="Enroll">
