@@ -244,10 +244,10 @@ def question():
 
         if user == selected_course.get('instructor'):
             # The user is an instructor
-            return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions)
+            return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions, user=user)
         else:
             # The user is a student
-            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, username=user)
+            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, user=user)
 
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():
@@ -270,7 +270,7 @@ def create_question():
 
         question = questions_collection.find_one({"course_name": course_name})
 
-        return render_template("question.html", question=question)
+        return render_template("my.html")
 
     else:
         return render_template("createQuestion.html")
@@ -281,10 +281,12 @@ def question_event(data):
     question_id = data.get('question_id')
 
     if action == 'start':
+        print("in start")
         questions_collection.update_one({'question_id': question_id}, {'$set': {'is_active': True}})
         emit('question_started', question_id, broadcast=True)
 
     elif action == 'stop':
+        print("in stop")
         questions_collection.update_one({'question_id': question_id}, {'$set': {'is_active': False}})
         grade_answers(question_id)
         emit('question_stopped', question_id, broadcast=True)

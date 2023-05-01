@@ -28,22 +28,26 @@
     </div>
 
     <div class="question-display">
-        <form id="submitAnswer">
-            <h1>{{ question.question_text }}</h1>
-            <input type="radio" id="optionA" name="option" value="A">
-            <label for="optionA">A</label>
-            {{ question.options[0] }}
-            <br>
-            <input type="radio" id="optionB" name="option" value="B">
-            <label for="optionB">B</label>
-            {{ question.options[1] }}
-            <br>
-            <input type="radio" id="optionC" name="option" value="C">
-            <label for="optionC">C</label>
-            {{ question.options[2] }}
-            <br>
-            <button id="submitButton">submit</button>
-        </form>
+
+        <h1>{{ question.question_text }}</h1>
+        <label for="optionA">A</label>
+        {{ question.options[0] }}
+        <br>
+        <label for="optionB">B</label>
+        {{ question.options[1] }}
+        <br>
+        <label for="optionC">C</label>
+        {{ question.options[2] }}
+        <br>
+
+        <label>Choose Option (A, B or C):</label>
+        <input type="text" id="choose_option" name="choose_option" pattern="[A-Ca-c]" required>
+        <br>
+        <label>Your name:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <button id="submitButton">Submit</button>
+
         <ul id="messages"></ul>
     </div>
 
@@ -72,8 +76,8 @@
         });
 
         document.getElementById('submitButton').addEventListener('click', () => {
-            const username = username;
-            const answer = document.querySelector('input[name="option"]:checked').value;
+            const username = document.getElementById('username').value;
+            const answer = document.getElementById('choose_option').value;
             const question_id = {{ question.question_id }};
             socket.emit('question_event', { action: 'submit', username, answer, question_id });
         });
@@ -87,6 +91,10 @@
         });
 
         socket.on('answer_accepted', (data) => {
+            addMessageToList(`Answer accepted: ${data.message}`);
+        });
+
+        socket.on('answer_not_accepted', (data) => {
             addMessageToList(`Answer accepted: ${data.message}`);
         });
 
