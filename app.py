@@ -12,12 +12,14 @@ import datetime
 
 mongo_client = pymongo.MongoClient("mongo")
 db = mongo_client["cse312"]
+question_id = db['id']
 
 user_collection = db['users']  # database to store the username and password
 course_collection = db['courses']  # database to store the course
 cookies_collection = db["cookies"]  # database to store the cookies
 questions_collection = db["questions"]  # database to store the questions
 answers_collection = db["answers"]
+grades_collection = db["grades"]
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
@@ -48,16 +50,35 @@ def check_cookies():
             return True
     return False
 
-def grade_question(question_id):
-    question = questions_collection.find_one({'_id': question_id})
-    correct_answer = question['correct_answer']
+def nextid():
+    # from last semester lecture recording
+    # HW1 AO2
+    id = question_id.find_one({})
+    if id:
+        next_id = int(id['last_id']) + 1
+        question_id.update_one({}, {'$set': {'last_id': next_id}})
+        return next_id
+    else:
+        question_id.insert_one({'last_id': 1})
+        return 1
 
+def grade_answers(question_id):
+    question = questions_collection.find_one({'question_id': question_id})
+    if not question:
+        return
+
+    correct_option = question['correct_option']
     answers = answers_collection.find({'question_id': question_id})
+
     for answer in answers:
-        grade = answer['answer'] == correct_answer
-        answers_collection.update_one({'_id': answer['_id']}, {'$set': {'grade': grade}})
-
-
+        username = answer['username']
+        user_answer = answer['answer']
+        is_correct = user_answer == correct_option
+        grades_collection.update_one(
+            {'username': username, 'question_id': question_id},
+            {'$set': {'is_correct': is_correct}},
+            upsert=True
+        )
 
 @app.route('/')
 def index():  # homepage
@@ -217,7 +238,6 @@ def question():
         course_name = request.full_path.split("=")[1]
 
         print('course_name2 -->', course_name)
-        # course_name = course_name.split("=")[1]
         selected_course = course_collection.find_one({"course_name": course_name})  # find course name
         courseQuestions = questions_collection.find_one({"course_name": course_name})
         print("questions", courseQuestions)
@@ -227,11 +247,12 @@ def question():
             return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions)
         else:
             # The user is a student
-            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions)
+            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, username=user)
 
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():
     if flask.request.method == 'POST':
+        question_id = nextid()
         course_name = flask.request.form['course_name']
         question_text = escape_text(flask.request.form['question_text'])
         options = flask.request.form.getlist('options[]')
@@ -239,6 +260,7 @@ def create_question():
         correct_option = escape_text(flask.request.form['correct_option'])
 
         questions_collection.insert_one({
+            "question_id": question_id,
             "course_name": course_name,
             "question_text": question_text,
             "options": options,
@@ -246,56 +268,45 @@ def create_question():
             'is_active': False
         })
 
-        return render_template("question.html")
+        question = questions_collection.find_one({"course_name": course_name})
+
+        return render_template("question.html", question=question)
 
     else:
         return render_template("createQuestion.html")
 
-
 @socketio.on('question_event')
-def handle_question_event(data):
+def question_event(data):
     action = data.get('action')
+    question_id = data.get('question_id')
 
-    if action == 'start_question':
-        question_id = data['question_id']
-        course_id = data['course_id']
+    if action == 'start':
+        questions_collection.update_one({'question_id': question_id}, {'$set': {'is_active': True}})
+        emit('question_started', question_id, broadcast=True)
 
-        question = questions_collection.find_one({'_id': question_id})
-        if question and not question['is_active']:
-            questions_collection.update_one({'_id': question_id}, {'$set': {'is_active': True, 'start_time': datetime.datetime.utcnow()}})
-            emit('question_started', {'question_id': question_id}, room=course_id)
+    elif action == 'stop':
+        questions_collection.update_one({'question_id': question_id}, {'$set': {'is_active': False}})
+        grade_answers(question_id)
+        emit('question_stopped', question_id, broadcast=True)
 
-    elif action == 'stop_question':
-        question_id = data['question_id']
-        course_id = data['course_id']
+    elif action == 'submit':
+        username = data.get('username')
+        answer = data.get('answer')
 
-        question = questions_collection.find_one({'_id': question_id})
-        if question and question['is_active']:
-            questions_collection.update_one({'_id': question_id}, {'$set': {'is_active': False, 'end_time': datetime.datetime.utcnow()}})
-            emit('question_stopped', {'question_id': question_id}, room=course_id)
+        question = questions_collection.find_one({'question_id': question_id})
 
-    elif action == 'submit_answer':
-        user_id = data['user_id']
-        question_id = data['question_id']
-        answer = data['answer']
+        if not question or not question['is_active']:
+            emit('answer_not_accepted', {'message': 'Question is not active'})
+            return
 
-        question = questions_collection.find_one({'_id': question_id})
-        if question and question['is_active']:
-            is_correct = question['correct_option'] == answer
-            answers_collection.insert_one({
-                'user_id': user_id,
-                'question_id': question_id,
-                'answer': answer,
-                'is_correct': is_correct,
-                'timestamp': datetime.datetime.utcnow()
-            })
+        answers_collection.insert_one({
+            'username': username,
+            'question_id': question_id,
+            'answer': answer
+        })
 
-            emit('answer_submitted', {'user_id': user_id, 'question_id': question_id, 'is_correct': is_correct})
-        else:
-            emit('error', {'message': 'Cannot submit answer. The question is not active or does not exist.'})
+        emit('answer_accepted', {'message': 'Answer submitted successfully'})
 
-    else:
-        emit('error', {'message': 'Invalid action'})
 
 @app.route('/gradebook', methods=['GET'])
 def get_grades():
@@ -318,4 +329,5 @@ def get_grades():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)  # localhost:8080
+    # app.run(host='0.0.0.0', port=5000)  # localhost:8080
+    socketio.run(app, host="0.0.0.0")

@@ -28,44 +28,69 @@
     </div>
 
     <div class="question-display">
-        <h1>{{ question.question_text }}</h1>
-        <input type="radio" id="optionA" name="option" value="A">
-        <label for="optionA">A</label>
-        {{ question.options[0] }}
-        <br>
-        <input type="radio" id="optionB" name="option" value="B">
-        <label for="optionB">B</label>
-        {{ question.options[1] }}
-        <br>
-        <input type="radio" id="optionC" name="option" value="C">
-        <label for="optionC">C</label>
-        {{ question.options[2] }}
-        <br>
-        <button id="submit_answer">submit</button>
+        <form id="submitAnswer">
+            <h1>{{ question.question_text }}</h1>
+            <input type="radio" id="optionA" name="option" value="A">
+            <label for="optionA">A</label>
+            {{ question.options[0] }}
+            <br>
+            <input type="radio" id="optionB" name="option" value="B">
+            <label for="optionB">B</label>
+            {{ question.options[1] }}
+            <br>
+            <input type="radio" id="optionC" name="option" value="C">
+            <label for="optionC">C</label>
+            {{ question.options[2] }}
+            <br>
+            <button id="submitButton">submit</button>
+        </form>
+        <ul id="messages"></ul>
     </div>
 
-{#    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>#}
-{#    <script>#}
-{#        document.addEventListener('DOMContentLoaded', () => {#}
-{#            const socket = io();#}
-{##}
-{#            document.getElementById('submit_answer').addEventListener('click', () => {#}
-{#                const selectedOption = document.querySelector('input[name="option"]:checked');#}
-{#                if (selectedOption) {#}
-{#                    const user_id = ...;#}
-{#                    const question_id = ...;#}
-{##}
-{#                    socket.emit('submit_answer', {#}
-{#                        user_id: user_id,#}
-{#                        question_id: question_id,#}
-{#                        answer: selectedOption.value#}
-{#                    });#}
-{#                } else {#}
-{#                    alert('Please choose a choice');#}
-{#                }#}
-{#            });#}
-{#        });#}
-{#    </script>#}
+    <button id="startButton">Start Question</button>
+    <button id="stopButton">Stop Question</button>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        const socket = io.connect("http://localhost:8080");
+
+        function addMessageToList(message) {
+            const li = document.createElement('li');
+            li.textContent = message;
+            document.getElementById('messages').appendChild(li);
+        }
+
+        document.getElementById('startButton').addEventListener('click', () => {
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'start', question_id });
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'stop', question_id });
+        });
+
+        document.getElementById('submitButton').addEventListener('click', () => {
+            const username = username;
+            const answer = document.querySelector('input[name="option"]:checked').value;
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'submit', username, answer, question_id });
+        });
+
+        socket.on('question_started', (question_id) => {
+            addMessageToList(`Question started: ${question_id}`);
+        });
+
+        socket.on('question_stopped', (question_id) => {
+            addMessageToList(`Question stopped: ${question_id}`);
+        });
+
+        socket.on('answer_accepted', (data) => {
+            addMessageToList(`Answer accepted: ${data.message}`);
+        });
+
+    </script>
 
 </body>
 </html>
