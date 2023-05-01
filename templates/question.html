@@ -51,9 +51,10 @@
         <ul id="messages"></ul>
     </div>
 
+    {% if role %}
     <button id="startButton">Start Question</button>
     <button id="stopButton">Stop Question</button>
-
+    {% endif %}
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
