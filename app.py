@@ -200,11 +200,11 @@ def course():
                 return render_template("course.html", course_name=course_name, instructor=instructor, descript=description)
             else:
                 # Insert the course name in user's database
-                user_collection.insert_one({"username": student, "courses": course_name})
+                user_collection.insert_one({"username": student, "course_name": course_name})
                 # Insert the student name in the course's database
                 course_collection.update_one({"course_name": course_name}, {"$push": {"students": student}})
-                my_courses = user_collection.find({"username": student})
-                return render_template("my.html", my_courses=my_courses)
+                my_course = user_collection.find({"username": student})
+                return render_template("my.html", my_course=my_course)
 
     else:
         if selected_course:
@@ -219,10 +219,15 @@ def course():
                                        descript=description, course_id=course_id, role=True, grades=all_grades,
                                        result=result)
             else:
-                student_grades = list(answers_collection.find({'username': username}))
-                return render_template("course.html", course_name=course_name, instructor=instructor,
-                                       descript=description, course_id=course_id, role=False, grades=student_grades,
-                                       result=result)
+                enrolled_student = course_collection.find_one({"course_name": course_name, "students": username})
+                if enrolled_student:
+                    student_grades = list(answers_collection.find({'username': username}))
+                    return render_template("course.html", course_name=course_name, instructor=instructor,
+                                           descript=description, course_id=course_id, role=False, grades=student_grades,
+                                           result=result)
+                else:
+                    return render_template("course.html", course_name=course_name, instructor=instructor,
+                                           descript=description, course_id=course_id, result=result)
 @app.route('/my', methods=['GET', 'POST'])
 def my():
     if flask.request.method == 'GET':
@@ -268,7 +273,7 @@ def create_question():
             'is_active': False
         })
 
-        question = questions_collection.find_one({"course_name": course_name})
+        # question = questions_collection.find_one({"course_name": course_name})
 
         return render_template("index.html")
 
@@ -294,6 +299,8 @@ def question_event(data):
     elif action == 'submit':
         username = data.get('username')
         answer = data.get('answer')
+
+        print(username)
 
         question = questions_collection.find_one({'question_id': question_id})
 
