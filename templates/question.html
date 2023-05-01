@@ -58,7 +58,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
-        const socket = io.connect("http://localhost:8080");
+        const socket = io("http://localhost:8080");
 
         function addMessageToList(message) {
             const li = document.createElement('li');
@@ -66,6 +66,7 @@
             document.getElementById('messages').appendChild(li);
         }
 
+        {% if role %}
         document.getElementById('startButton').addEventListener('click', () => {
             const question_id = {{ question.question_id }};
             socket.emit('question_event', { action: 'start', question_id });
@@ -75,6 +76,7 @@
             const question_id = {{ question.question_id }};
             socket.emit('question_event', { action: 'stop', question_id });
         });
+        {% endif %}
 
         document.getElementById('submitButton').addEventListener('click', () => {
             const username = document.getElementById('username').value;
