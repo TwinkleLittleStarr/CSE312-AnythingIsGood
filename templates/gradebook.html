@@ -36,12 +36,14 @@
             <br>
             Grade: {{ student.points }}
             <br>
+            <br>
         {% endfor %}
     {% else %}
         {% for i in user_grades %}
         Question text: {{ i.question_text }}
         <br>
         Your grade: {{ i.points }}
+        <br>
         <br>
         {% endfor %}
     {% endif %}
