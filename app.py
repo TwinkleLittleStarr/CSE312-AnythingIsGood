@@ -351,12 +351,12 @@ def get_grades():
         if user == selected_course.get('instructor'):
             # The user is an instructor
             all_grades = list(grades_collection.find({"course_name": course_name}))
-            return render_template("gradebook.html", roster=all_grades, role=True)
+            roster = {grade["username"] for grade in all_grades}
+            return render_template("gradebook.html", roster=roster, is_instructor=True)
         else:
             # The user is a student
-            user_grades = grades_collection.find_one({"username": user, "course_name": course_name})
-            print("user grade", user_grades)
-            return render_template("gradebook.html", user_grades=user_grades, role=False)
+            user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
+            return render_template("gradebook.html", user_grades=user_grades, is_instructor=False)
 
 
 

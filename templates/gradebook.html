@@ -38,9 +38,12 @@
             <br>
         {% endfor %}
     {% else %}
-        Question text: {{ user_grades.question_text }}
+        {% for i in user_grades %}
+        Question text: {{ i.question_text }}
         <br>
-        Your grade: {{ user_grades.points }}
+        Your grade: {{ i.points }}
+        <br>
+        {% endfor %}
     {% endif %}
     </div>
 </body>
