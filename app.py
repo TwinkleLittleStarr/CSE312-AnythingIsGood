@@ -253,15 +253,19 @@ def question():
 
         print('course_name2 -->', course_name)
         selected_course = course_collection.find_one({"course_name": course_name})  # find course name
-        courseQuestions = questions_collection.find_one({"course_name": course_name})
+        courseQuestions = questions_collection.find_one({"course_name": course_name}, sort=[("question_id", -1)])
         print("questions", courseQuestions)
 
-        if user == selected_course.get('instructor'):
-            # The user is an instructor
-            return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions, role=True)
+        if courseQuestions == None:
+            return render_template("question.html", empty=True)
+
         else:
-            # The user is a student
-            return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, role=False)
+            if user == selected_course.get('instructor'):
+                # The user is an instructor
+                return render_template("question.html", user_role="instructor", course_name=course_name, question=courseQuestions, role=True, empty=False)
+            else:
+                # The user is a student
+                return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, role=False, empty=False)
 
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():

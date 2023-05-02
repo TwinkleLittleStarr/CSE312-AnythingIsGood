@@ -28,7 +28,9 @@
     </div>
 
     <div class="question-display">
-
+    {% if empty %}
+        <h2>No questions</h2>
+    {% else %}
         <h1>{{ question.question_text }}</h1>
         <label for="optionA">A</label>
         {{ question.options[0] }}
@@ -55,6 +57,7 @@
     <button id="startButton">Start Question</button>
     <button id="stopButton">Stop Question</button>
     {% endif %}
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
@@ -85,12 +88,12 @@
             socket.emit('question_event', { action: 'submit', username, answer, question_id });
         });
 
-        socket.on('question_started', (question_id) => {
-            addMessageToList(`Question started: ${question_id}`);
+        socket.on('question_started', () => {
+            addMessageToList(`Question started`);
         });
 
-        socket.on('question_stopped', (question_id) => {
-            addMessageToList(`Question stopped: ${question_id}`);
+        socket.on('question_stopped', () => {
+            addMessageToList(`Question stopped`);
         });
 
         socket.on('answer_accepted', (data) => {
@@ -102,6 +105,6 @@
         });
 
     </script>
-
+    {% endif %}
 </body>
 </html>
