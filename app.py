@@ -63,20 +63,29 @@ def nextid():
         return 1
 
 def grade_answers(question_id):
+    points = 0
     question = questions_collection.find_one({'question_id': question_id})
     if not question:
         return
 
     correct_option = question['correct_option']
+    course_name = question['course_name']
+    question_text = question['question_text']
     answers = answers_collection.find({'question_id': question_id})
 
     for answer in answers:
         username = answer['username']
         user_answer = answer['answer']
         is_correct = user_answer == correct_option
+        if is_correct:
+            points = 1
+
+        else:
+            points = 0
+
         grades_collection.update_one(
-            {'username': username, 'question_id': question_id},
-            {'$set': {'is_correct': is_correct}},
+            {'username': username, 'question_id': question_id, 'course_name': course_name, 'question_text': question_text},
+            {'$set': {'is_correct': is_correct, 'points': points}},
             upsert=True
         )
 
@@ -324,21 +333,26 @@ def question_event(data):
 
 @app.route('/gradebook', methods=['GET'])
 def get_grades():
-    username = request.args.get('username')
-    course_name = request.args.get('course_name')
-    instructor = request.args.get('instructor')
+    if flask.request.method == 'GET':
+        user = session.get('username')
+        course_name = request.full_path.split("=")[1]
 
-    if instructor:
-        # If the requester is an instructor, return all the grades for the course
-        all_grades = list(answers_collection.find({'course_name': course_name}, {'_id': 0}))
-        # Retrieve students enrolled in the course
-        students = course_collection.find_one({"course_name": course_name}).get("students")
-        return render_template('gradebook.html', grades=all_grades, role=True, students=students)
+        if not user or not course_name:
+            return "Unauthorized", 401
 
-    elif username:
-        # If the requester is a student, return only their grades
-        student_grades = list(answers_collection.find({'username': username, 'course_name': course_name}, {'_id': 0}))
-        return render_template('gradebook.html', grades=student_grades, role=False, student=username)
+        selected_course = course_collection.find_one({"course_name": course_name})
+        if not selected_course:
+            return "Course not found", 404
+
+        if user == selected_course.get('instructor'):
+            # The user is an instructor
+            all_grades = list(grades_collection.find({"course_name": course_name}))
+            return render_template("gradebook.html", roster=all_grades, role=True)
+        else:
+            # The user is a student
+            user_grades = grades_collection.find_one({"username": user, "course_name": course_name})
+            print("user grade", user_grades)
+            return render_template("gradebook.html", user_grades=user_grades, role=False)
 
 
 

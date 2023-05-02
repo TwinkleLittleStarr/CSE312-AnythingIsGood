@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/log.css">
     <title>Grade book</title>
 </head>
 <body>
@@ -26,13 +27,20 @@
         </div>
     </div>
 
-    <div class="display">
+    <div class="grade-display">
     {% if role %}
-        {% for student in students %}
-            <li>{{ student }}</li>
+        {% for student in roster %}
+            Student: {{ student.username }}
+            <br>
+            Question text: {{ student.question_text }}
+            <br>
+            Grade: {{ student.points }}
+            <br>
         {% endfor %}
     {% else %}
-        
+        Question text: {{ user_grades.question_text }}
+        <br>
+        Your grade: {{ user_grades.points }}
     {% endif %}
     </div>
 </body>
