@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/log.css">
+    <title>Questions</title>
+</head>
+<body>
+    <div class="header">
+        <!-- logo model -->
+        <div class="logo">
+            <h1>TopHat</h1>
+        </div>
+        <!-- navigate -->
+        <div class="nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('create') }}">Create Course</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('logout') }}">Log out</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="question-display">
+    {% if empty %}
+        <h2>No questions</h2>
+    {% else %}
+        <h1>{{ question.question_text }}</h1>
+        <label for="optionA">A</label>
+        {{ question.options[0] }}
+        <br>
+        <label for="optionB">B</label>
+        {{ question.options[1] }}
+        <br>
+        <label for="optionC">C</label>
+        {{ question.options[2] }}
+        <br>
+
+        <label>Choose Option (A, B or C):</label>
+        <input type="text" id="choose_option" name="choose_option" pattern="[A-Ca-c]" required>
+        <br>
+        <label>Your name:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <button id="submitButton">Submit</button>
+
+        <ul id="messages"></ul>
+    </div>
+
+    {% if role %}
+    <button id="startButton">Start Question</button>
+    <button id="stopButton">Stop Question</button>
+    {% endif %}
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
+    <script>
+        const socket = io("http://localhost:8080");
+
+        function addMessageToList(message) {
+            const li = document.createElement('li');
+            li.textContent = message;
+            document.getElementById('messages').appendChild(li);
+        }
+
+        {% if role %}
+        document.getElementById('startButton').addEventListener('click', () => {
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'start', question_id });
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'stop', question_id });
+        });
+        {% endif %}
+
+        document.getElementById('submitButton').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const answer = document.getElementById('choose_option').value;
+            const question_id = {{ question.question_id }};
+            socket.emit('question_event', { action: 'submit', username, answer, question_id });
+        });
+
+        socket.on('question_started', () => {
+            addMessageToList(`Question started`);
+        });
+
+        socket.on('question_stopped', () => {
+            addMessageToList(`Question stopped`);
+        });
+
+        socket.on('answer_accepted', (data) => {
+            addMessageToList(`Answer accepted: ${data.message}`);
+        });
+
+        socket.on('answer_not_accepted', (data) => {
+            addMessageToList(`Answer accepted: ${data.message}`);
+        });
+
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -44,10 +44,17 @@
         <p>
         <p>{{ descript }}</p>
         <p>
-        <form action="/register" method="POST">
-        <input type="submit" class="button" value="Add">
-        <p>{{ addStatus }}</p>
-        </form>
+        {% if result %}
+            <a href="/question?course_name={{ course_name }}">Questions</a>
+            {% if role %}
+                <a href="/createQuestion?course_name={{ course_name }}">Create Questions</a>
+            {% endif %}
+            <a href="/gradebook?course_name={{ course_name }}">GradeBook</a>
+        {% else %}
+            <form action="/course?course_name={{ course_name }}" method="POST">
+            <input type="submit" class="button" value="Enroll">
+            </form>
+        {% endif %}
     </div>
 </body>
 </html>
