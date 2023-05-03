@@ -83,7 +83,7 @@ def grade_answers(question_id):
 
         grades_collection.update_one(
             {'username': username, 'question_id': question_id, 'course_name': course_name, 'question_text': question_text},
-            {'$set': {'is_correct': is_correct, 'points': points}},
+            {'$set': {'is_correct': is_correct, 'points': points, 'user_answer': user_answer}},
             upsert=True
         )
 
@@ -335,6 +335,7 @@ def question_event(data):
 
 @app.route('/gradebook', methods=['GET'])
 def get_grades():
+    user_answer = ''
     if flask.request.method == 'GET':
         user = session.get('username')
         course_name = request.full_path.split("=")[1]
@@ -361,7 +362,10 @@ def get_grades():
         else:
             # The user is a student
             user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
-            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], is_instructor=False)
+            for grade in user_grades:
+                user_answer = grade.get("user_answer")
+                print("user ANswer -->", user_answer)
+            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], user_answer=user_answer, is_instructor=False)
 
 @app.route('/roster', methods=['GET'])
 def roster():
@@ -376,16 +380,15 @@ def roster():
         if not selected_course:
             return "Course not found", 404
 
+        if selected_course == None:
+            return render_template("roster.html", empty=True)
+
         if user == selected_course.get('instructor'):
-            students_list = []
-            students = selected_course.get('username')
-            for i in students:
-                if i != user:
-                    students_list.append(i)
+            students = list(course_collection.find({"course_name": course_name}))
+            for student in students:
+                s = student["students"]
 
-            return render_template("roster.html", course_name=course_name, students=students_list)
-
-
+            return render_template("roster.html", course_name=course_name, students=s, empty=False)
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)  # localhost:8080
