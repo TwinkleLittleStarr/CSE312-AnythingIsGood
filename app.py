@@ -64,7 +64,6 @@ def nextid():
         return 1
 
 def grade_answers(question_id):
-    points = 0
     question = questions_collection.find_one({'question_id': question_id})
     if not question:
         return
@@ -80,13 +79,12 @@ def grade_answers(question_id):
         is_correct = user_answer == correct_option
         if is_correct:
             points = 1
-
         else:
             points = 0
 
         grades_collection.update_one(
             {'username': username, 'question_id': question_id, 'course_name': course_name, 'question_text': question_text},
-            {'$set': {'is_correct': is_correct, 'points': points}},
+            {'$set': {'is_correct': is_correct, 'points': points, 'user_answer': user_answer}},
             upsert=True
         )
 
@@ -338,6 +336,7 @@ def question_event(data):
 
 @app.route('/gradebook', methods=['GET'])
 def get_grades():
+    user_answer = ''
     if flask.request.method == 'GET':
         user = session.get('username')
         course_name = request.full_path.split("=")[1]
@@ -349,6 +348,9 @@ def get_grades():
         if not selected_course:
             return "Course not found", 404
 
+        if selected_course.get('students') is None:
+            return render_template("gradebook.html", empty=True)
+
         all_grades = list(grades_collection.find({"course_name": course_name}))
         total_points = {}
         for grade in all_grades:
@@ -359,17 +361,16 @@ def get_grades():
         if user == selected_course.get('instructor'):
             # The user is an instructor
             userlist = []
-            dic = {}
             all_grades = list(grades_collection.find({"course_name": course_name}))
             for grade in all_grades:
                 username = grade["username"]
                 if username not in userlist:
                     userlist.append(username)
-            return render_template("gradebook.html", roster=all_grades, total_points=total_points, user=userlist, role=True)
+            return render_template("gradebook.html", roster=all_grades, total_points=total_points, user=userlist, role=True, empty=False)
         else:
             # The user is a student
             user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
-            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], role=False)
+            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], role=False, empty=False)
 
 @app.route('/roster', methods=['GET'])
 def roster():
@@ -381,15 +382,19 @@ def roster():
             return "Unauthorized", 401
 
         selected_course = course_collection.find_one({"course_name": course_name})
+        print(selected_course.get('students'))
         if not selected_course:
             return "Course not found", 404
+
+        if selected_course.get('students') is None:
+            return render_template("roster.html", empty=True)
 
         if user == selected_course.get('instructor'):
             students = list(course_collection.find({"course_name": course_name}))
             for student in students:
                 s = student["students"]
 
-            return render_template("roster.html", course_name=course_name, students=s)
+            return render_template("roster.html", course_name=course_name, students=s, empty=False)
 
 
 if __name__ == '__main__':

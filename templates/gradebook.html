@@ -28,11 +28,16 @@
     </div>
 
     <div class="grade-display">
+    {% if empty %}
+    <h2>No grade</h2>
+    {% else %}
     {% if role %}
         {% for question in roster %}
             Username: {{ question.username }}
             <br>
             Question text: {{ question.question_text }}
+            <br>
+            User answer: {{ question.user_answer }}
             <br>
             Grade: {{ question.points }}
             <br>
@@ -50,12 +55,15 @@
         {% for i in user_grades %}
         Question text: {{ i.question_text }}
         <br>
+        Your answer: {{ i.user_answer }}
+        <br>
         Your grade: {{ i.points }}
         <br>
         <br>
         {% endfor %}
         <br>
         Total Grade: {{ total_points }}
+    {% endif %}
     {% endif %}
     </div>
 </body>
