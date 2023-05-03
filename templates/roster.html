@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../static/css/log.css">
+    <title>Create Course</title>
+</head>
+<body>
+    <div class="header">
+        <!-- logo model -->
+        <div class="logo">
+            <h1>TopHat</h1>
+        </div>
+        <!-- navigate -->
+        <div class="nav">
+            <ul>
+                <li>
+                    <a href="{{ url_for('index') }}">Home</a>
+                </li>
+                <li>
+                    <a href="{{ url_for('logout') }}">Log out</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="loginDiv">
+        <h3>Roster:</h3>
+        <br>
+        <br>
+        <br>
+        {% for username in students %}
+            {{ username }}
+            <br>
+        {% endfor %}
+    </div>
+
+</body>
+</html>

@@ -3,6 +3,7 @@ import bcrypt
 from flask import Flask, render_template, redirect, session, request, url_for
 import pymongo
 import flask
+from typing import List
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
@@ -348,16 +349,47 @@ def get_grades():
         if not selected_course:
             return "Course not found", 404
 
+        all_grades = list(grades_collection.find({"course_name": course_name}))
+        total_points = {}
+        for grade in all_grades:
+            if grade["username"] not in total_points:
+                total_points[grade["username"]] = 0
+            total_points[grade["username"]] += grade["points"]
+
         if user == selected_course.get('instructor'):
             # The user is an instructor
+            userlist = []
+            dic = {}
             all_grades = list(grades_collection.find({"course_name": course_name}))
-            roster = {grade["username"] for grade in all_grades}
-            return render_template("gradebook.html", roster=roster, is_instructor=True)
+            for grade in all_grades:
+                username = grade["username"]
+                if username not in userlist:
+                    userlist.append(username)
+            return render_template("gradebook.html", roster=all_grades, total_points=total_points, user=userlist, role=True)
         else:
             # The user is a student
             user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
-            return render_template("gradebook.html", user_grades=user_grades, is_instructor=False)
+            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], role=False)
 
+@app.route('/roster', methods=['GET'])
+def roster():
+    if flask.request.method == 'GET':
+        user = session.get('username')
+        course_name = request.full_path.split("=")[1]
+
+        if not user:
+            return "Unauthorized", 401
+
+        selected_course = course_collection.find_one({"course_name": course_name})
+        if not selected_course:
+            return "Course not found", 404
+
+        if user == selected_course.get('instructor'):
+            students = list(course_collection.find({"course_name": course_name}))
+            for student in students:
+                s = student["students"]
+
+            return render_template("roster.html", course_name=course_name, students=s)
 
 
 if __name__ == '__main__':
