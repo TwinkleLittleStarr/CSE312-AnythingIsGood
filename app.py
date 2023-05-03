@@ -363,6 +363,25 @@ def get_grades():
             user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
             return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], is_instructor=False)
 
+@app.route('/roster', methods=['GET'])
+def roster():
+    if flask.request.method == 'GET':
+        user = session.get('username')
+        course_name = request.full_path.split("=")[1]
+
+        if not user:
+            return "Unauthorized", 401
+
+        selected_course = course_collection.find_one({"course_name": course_name})
+        if not selected_course:
+            return "Course not found", 404
+
+        if user == selected_course.get('instructor'):
+            # The user is an instructor
+            enrolled_usernames = selected_course.get('username', [])
+            # Filter out the instructor's username
+            enrolled_usernames = [username for username in enrolled_usernames if username != user]
+            return render_template("roster.html", enrolled_usernames=enrolled_usernames)
 
 
 if __name__ == '__main__':
