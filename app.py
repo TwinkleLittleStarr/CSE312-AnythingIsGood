@@ -377,11 +377,14 @@ def roster():
             return "Course not found", 404
 
         if user == selected_course.get('instructor'):
-            # The user is an instructor
-            enrolled_usernames = selected_course.get('username', [])
-            # Filter out the instructor's username
-            enrolled_usernames = [username for username in enrolled_usernames if username != user]
-            return render_template("roster.html", enrolled_usernames=enrolled_usernames)
+            students_list = []
+            students = selected_course.get('username')
+            for i in students:
+                if i != user:
+                    students_list.append(i)
+
+            return render_template("roster.html", course_name=course_name, students=students_list)
+
 
 
 if __name__ == '__main__':
