@@ -92,7 +92,7 @@ def index():  # homepage
 
 
 @app.after_request
-def apply_nosniff(response):
+def apply_nosniff(response):  # add non-sniff to the photo
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 
@@ -101,7 +101,7 @@ def apply_nosniff(response):
 def register():
     # new users need to sign up, go to log in page after sign up
     if flask.request.method == 'POST':
-        username = escape_text(flask.request.form['username'])  #escaped
+        username = escape_text(flask.request.form['username'])  # escaped
         password = flask.request.form['password']
 
         # username should not be empty, password should have at least 6 characters
@@ -114,6 +114,8 @@ def register():
 
         else:
             hashed_password = generate_password_hash(password)  # generate password in hash for security
+            # salt = bcrypt.gensalt()
+            # hashed_password = bcrypt.hashpw(password.encode(), salt)
 
             # Insert new user into the database
             user_collection.insert_one({"username": username, "password": hashed_password})
@@ -147,7 +149,10 @@ def login():
                 session["username"] = username
                 cookies_collection.insert_one({"username": username, "authToken": hashedToken})
 
-                return render_template("index.html", username=username)
+                # return render_template("index.html", username=username)
+                resp = make_response(render_template("index.html", username=username))
+                resp.set_cookie("auth_token", token, httponly=True)   # Add auth_token in the cookie
+                return resp
     else:
         # If both username and password are correct, go to personal homepage
         token = session.get("token")
