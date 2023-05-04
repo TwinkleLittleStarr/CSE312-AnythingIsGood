@@ -1,8 +1,9 @@
 import secrets
 import bcrypt
-from flask import Flask, render_template, redirect, session, request, url_for
+from flask import Flask, render_template, session, request, make_response
 import pymongo
 import flask
+from typing import List
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
@@ -32,11 +33,8 @@ def user_in_course(username, course_name):
     else:
         return False
 
-def escape_text(text):  # comment security
-    if (not isinstance(text, str)):
-        return
-    return text.replace('&', '&#38;').replace('<', '&#60;').replace('>', '&#62;')
-
+def escape_text(text):
+    return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 def valid_text(text):
     if len(text) != 0:
@@ -87,16 +85,23 @@ def grade_answers(question_id):
             upsert=True
         )
 
+
 @app.route('/')
 def index():  # homepage
     return render_template("index.html")
+
+
+@app.after_request
+def apply_nosniff(response):
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
     # new users need to sign up, go to log in page after sign up
     if flask.request.method == 'POST':
-        username = escape_text(flask.request.form['username'])
+        username = escape_text(flask.request.form['username'])  #escaped
         password = flask.request.form['password']
 
         # username should not be empty, password should have at least 6 characters
@@ -122,8 +127,7 @@ def register():
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if flask.request.method == 'POST':
-        username_list = list()
-        username = escape_text(flask.request.form['username'])
+        username = escape_text(flask.request.form['username'])  #escaped
         password = flask.request.form['password']
         username_dic = user_collection.find_one({"username": username}, {"_id": 0})
 
@@ -167,8 +171,10 @@ def logout():  # click logout
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
     if flask.request.method == 'POST':
+        # course name escaped
         course_name = escape_text(flask.request.form['course_name'])  # user can add course name
         course_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # course id, generate randomly
+        # course description  escaped
         description = escape_text(flask.request.form['descript'])  # user can add course description
 
         instructor = session.get('username')  # user in the cookie is the instructor of the course
@@ -186,11 +192,13 @@ def courses():  # display all courses
         all_courses = course_collection.find({}, {"_id": 0})
         return render_template("courses.html", all_courses=all_courses)
 
+
 @app.route('/course', methods=['GET', 'POST'])
 def course():
     course_name = request.full_path.split("=")[1]
     print("coursename -->", course_name)
     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
+    print("selected_course -->", selected_course)
 
     instructor = selected_course.get('instructor')
     description = selected_course.get('descript')
@@ -235,6 +243,8 @@ def course():
                 else:
                     return render_template("course.html", course_name=course_name, instructor=instructor,
                                            descript=description, course_id=course_id, result=result)
+
+
 @app.route('/my', methods=['GET', 'POST'])
 def my():
     if flask.request.method == 'GET':
@@ -242,6 +252,7 @@ def my():
         # Retrieve the enrolled courses for the logged-in user
         my_course = user_collection.find({"username": student})
         return render_template("my.html", my_course=my_course)
+
 
 @app.route('/question', methods=['GET'])
 def question():
@@ -265,11 +276,12 @@ def question():
                 # The user is a student
                 return render_template("question.html", user_role="student", course_name=course_name, question=courseQuestions, role=False, empty=False)
 
+
 @app.route('/createQuestion', methods=['POST', 'GET'])
 def create_question():
     if flask.request.method == 'POST':
         question_id = nextid()
-        course_name = flask.request.form['course_name']
+        course_name = escape_text(flask.request.form['course_name'])
         question_text = escape_text(flask.request.form['question_text'])
         options = flask.request.form.getlist('options[]')
         print("options", options)
@@ -291,6 +303,7 @@ def create_question():
     else:
         return render_template("createQuestion.html")
 
+
 @socketio.on('question_event')
 def question_event(data):
     action = data.get('action')
@@ -308,8 +321,8 @@ def question_event(data):
         emit('question_stopped', question_id, broadcast=True)
 
     elif action == 'submit':
-        username = data.get('username')
-        answer = data.get('answer')
+        username = escape_text(data.get('username'))
+        answer = escape_text(data.get('answer'))
 
         print(username)
 
@@ -347,6 +360,9 @@ def get_grades():
         if not selected_course:
             return "Course not found", 404
 
+        if selected_course.get('students') is None:
+            return render_template("gradebook.html", empty=True)
+
         all_grades = list(grades_collection.find({"course_name": course_name}))
         total_points = {}
         for grade in all_grades:
@@ -356,16 +372,18 @@ def get_grades():
 
         if user == selected_course.get('instructor'):
             # The user is an instructor
+            userlist = []
             all_grades = list(grades_collection.find({"course_name": course_name}))
-            roster = {grade["username"] for grade in all_grades}
-            return render_template("gradebook.html", roster=roster, total_points=total_points, is_instructor=True)
+            for grade in all_grades:
+                username = grade["username"]
+                if username not in userlist:
+                    userlist.append(username)
+            return render_template("gradebook.html", roster=all_grades, total_points=total_points, user=userlist, role=True, empty=False)
         else:
             # The user is a student
             user_grades = list(grades_collection.find({"username": user, "course_name": course_name}))
-            for grade in user_grades:
-                user_answer = grade.get("user_answer")
-                print("user ANswer -->", user_answer)
-            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], user_answer=user_answer, is_instructor=False)
+            return render_template("gradebook.html", user_grades=user_grades, total_points=total_points[user], role=False, empty=False)
+
 
 @app.route('/roster', methods=['GET'])
 def roster():
@@ -377,10 +395,11 @@ def roster():
             return "Unauthorized", 401
 
         selected_course = course_collection.find_one({"course_name": course_name})
+        print(selected_course.get('students'))
         if not selected_course:
             return "Course not found", 404
 
-        if selected_course == None:
+        if selected_course.get('students') is None:
             return render_template("roster.html", empty=True)
 
         if user == selected_course.get('instructor'):
@@ -389,6 +408,7 @@ def roster():
                 s = student["students"]
 
             return render_template("roster.html", course_name=course_name, students=s, empty=False)
+
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)  # localhost:8080
