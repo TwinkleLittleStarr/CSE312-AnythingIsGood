@@ -7,6 +7,7 @@ from typing import List
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
+import urllib.parse
 
 from flask_socketio import SocketIO, emit
 import datetime
@@ -200,8 +201,11 @@ def courses():  # display all courses
 
 @app.route('/course', methods=['GET', 'POST'])
 def course():
-    course_name = request.full_path.split("=")[1]
-    print("coursename -->", course_name)
+    course_name = request.full_path.split("=", 1)[1]
+    print("coursename1 -->", course_name)
+    course_name = urllib.parse.unquote(course_name)
+    print("coursename2 -->", course_name)
+
     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
     print("selected_course -->", selected_course)
 
@@ -365,7 +369,9 @@ def get_grades():
         if not selected_course:
             return "Course not found", 404
 
-        if selected_course.get('students') is None:
+        grade_user = grades_collection.find_one({"course_name": course_name}, sort=[("question_id", -1)])
+
+        if grade_user == None:
             return render_template("gradebook.html", empty=True)
 
         all_grades = list(grades_collection.find({"course_name": course_name}))
