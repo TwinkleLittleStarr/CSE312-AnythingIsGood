@@ -1,2 +1,2 @@
 # CSE312-AnythingIsGood
-https://cse312-anythingisgood.me
+https://twinklelittlestarr.github.io/CSE312-AnythingIsGood/
