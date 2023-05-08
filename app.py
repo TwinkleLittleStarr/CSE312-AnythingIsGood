@@ -179,8 +179,13 @@ def create():  # users can create courses
     if flask.request.method == 'POST':
         # course name escaped
         course_name = escape_text(flask.request.form['course_name'])  # user can add course name
+
+        existing_course = course_collection.find_one({"course_name": course_name})
+        if existing_course:
+            return render_template("create.html", error_message="A course with the same name already exists.")
+
         course_id = ''.join(random.choices(string.ascii_letters + string.digits, k=8))  # course id, generate randomly
-        # course description  escaped
+        # course description escaped
         description = escape_text(flask.request.form['descript'])  # user can add course description
 
         instructor = session.get('username')  # user in the cookie is the instructor of the course
