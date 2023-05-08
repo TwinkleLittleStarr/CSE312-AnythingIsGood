@@ -4,4 +4,3 @@ flask
 flask-socketio
 eventlet
 bcrypt
-Werkzeug
