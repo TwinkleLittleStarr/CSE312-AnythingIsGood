@@ -364,7 +364,8 @@ def get_grades():
     user_answer = ''
     if flask.request.method == 'GET':
         user = session.get('username')
-        course_name = request.full_path.split("=")[1]
+        course_name = request.full_path.split("=", 1)[1]
+        course_name = urllib.parse.unquote(course_name)
 
         if not user or not course_name:
             return "Unauthorized", 401
@@ -404,17 +405,17 @@ def get_grades():
 def roster():
     if flask.request.method == 'GET':
         user = session.get('username')
-        course_name = request.full_path.split("=")[1]
+        course_name = request.full_path.split("=", 1)[1]
+        course_name = urllib.parse.unquote(course_name)
 
         if not user:
             return "Unauthorized", 401
 
         selected_course = course_collection.find_one({"course_name": course_name})
-        print(selected_course.get('students'))
         if not selected_course:
             return "Course not found", 404
 
-        if selected_course.get('students') is None:
+        if selected_course.get('username') is None:
             return render_template("roster.html", empty=True)
 
         if user == selected_course.get('instructor'):
@@ -427,4 +428,4 @@ def roster():
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)  # localhost:8080
-    socketio.run(app, host="0.0.0.0")
+    socketio.run(app, host="0.0.0.0", port=5000)
