@@ -314,7 +314,14 @@ def create_question():
         return redirect(url_for('courses'))
 
     else:
-        return render_template("createQuestion.html")
+        user = session.get('username')
+        course_name = request.full_path.split("=", 1)[1]
+        course_name = urllib.parse.unquote(course_name)
+        selected_course = course_collection.find_one({"course_name": course_name})
+        if user != selected_course.get('instructor'):
+            return "you are not instructor", 401
+        else:
+            return render_template("createQuestion.html")
 
 
 @socketio.on('question_event')
@@ -415,10 +422,12 @@ def roster():
         if not selected_course:
             return "Course not found", 404
 
-        if selected_course.get('username') is None:
+        if selected_course.get('students') is None:
+            print("why none")
             return render_template("roster.html", empty=True)
 
         if user == selected_course.get('instructor'):
+            print("I am instructor")
             students = list(course_collection.find({"course_name": course_name}))
             for student in students:
                 s = student["students"]
