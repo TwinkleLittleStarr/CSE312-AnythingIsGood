@@ -61,7 +61,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script>
-        const socket = new WebSocket('wss://' + location.host + '/websockets');
+        var socket = io.connect("http://localhost:8080");
 
         function addMessageToList(message) {
             const li = document.createElement('li');
