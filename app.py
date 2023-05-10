@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
 import urllib.parse
-from flask_cors import CORS
+
 from flask_socketio import SocketIO, emit
 
 mongo_client = pymongo.MongoClient("mongo")
@@ -23,8 +23,7 @@ grades_collection = db["grades"]
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
-CORS(app, resources={r"*": {"origins": "*"}})
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app)
 
 def user_in_course(username, course_name):
     result = user_collection.find_one({"username": username, "course_name": course_name})
@@ -439,4 +438,4 @@ def roster():
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0', port=5000)  # localhost:8080
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0")
