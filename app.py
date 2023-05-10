@@ -272,6 +272,7 @@ def question():
     if flask.request.method == 'GET':
         user = session.get('username')
         course_name = request.full_path.split("=")[1]
+        course_name = urllib.parse.unquote(course_name)
 
         print('course_name2 -->', course_name)
         selected_course = course_collection.find_one({"course_name": course_name})  # find course name
