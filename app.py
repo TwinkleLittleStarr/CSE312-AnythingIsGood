@@ -7,6 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
 import urllib.parse
+import base64
 
 from flask_socketio import SocketIO, emit
 
@@ -174,6 +175,8 @@ def logout():  # click logout
 
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
+    if 'username' not in session:
+        return redirect(url_for('login'))
     if flask.request.method == 'POST':
         # course name escaped
         course_name = escape_text(flask.request.form['course_name'])  # user can add course name
@@ -192,11 +195,14 @@ def create():  # users can create courses
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
         return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description, result=True, role=True)
     else:
+
         return render_template("create.html")
 
 
 @app.route('/courses', methods=['GET', 'POST'])
 def courses():  # display all courses
+    if 'username' not in session:
+        return redirect(url_for('login'))
     if flask.request.method == 'GET':
         print("in the Get")
         all_courses = course_collection.find({}, {"_id": 0})
@@ -205,10 +211,10 @@ def courses():  # display all courses
 
 @app.route('/course', methods=['GET', 'POST'])
 def course():
-    course_name = request.full_path.split("=", 1)[1]
-    print("coursename1 -->", course_name)
-    course_name = urllib.parse.unquote(course_name)
-    print("coursename2 -->", course_name)
+    # encoded_course_name = request.full_path.split("=", 1)[1]
+    # print("encoded_coursename -->", encoded_course_name)
+    course_name = base64.urlsafe_b64decode(request.full_path.split("=", 1)[1]).decode()
+    print("coursename -->", course_name)
 
     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
     print("selected_course -->", selected_course)
