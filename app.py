@@ -23,7 +23,7 @@ grades_collection = db["grades"]
 
 app = Flask(__name__)
 app.secret_key = "cjqojcoqqocoqq"
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="https://cse312anythingisgood.live")
 
 def user_in_course(username, course_name):
     result = user_collection.find_one({"username": username, "course_name": course_name})
