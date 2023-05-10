@@ -174,6 +174,8 @@ def logout():  # click logout
 
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
+    if 'username' not in session:
+        return redirect(url_for('login'))
     if flask.request.method == 'POST':
         # course name escaped
         course_name = escape_text(flask.request.form['course_name'])  # user can add course name
@@ -197,6 +199,8 @@ def create():  # users can create courses
 
 @app.route('/courses', methods=['GET', 'POST'])
 def courses():  # display all courses
+    if 'username' not in session:
+        return redirect(url_for('login'))
     if flask.request.method == 'GET':
         print("in the Get")
         all_courses = course_collection.find({}, {"_id": 0})
