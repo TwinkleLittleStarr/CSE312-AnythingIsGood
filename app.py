@@ -175,8 +175,6 @@ def logout():  # click logout
 
 @app.route('/create', methods=['POST', 'GET'])
 def create():  # users can create courses
-    if 'username' not in session:
-        return redirect(url_for('login'))
     if flask.request.method == 'POST':
         # course name escaped
         course_name = escape_text(flask.request.form['course_name'])  # user can add course name
@@ -195,25 +193,24 @@ def create():  # users can create courses
         course_collection.insert_one({"course_name": course_name, "course_id": course_id, "descript": description, "instructor": instructor})
         return render_template("course.html", course_name=course_name, course_id=course_id, instructor=instructor, descript=description, result=True, role=True)
     else:
-
+        if 'username' not in session:
+            return redirect(url_for('login'))
         return render_template("create.html")
 
 
 @app.route('/courses', methods=['GET', 'POST'])
 def courses():  # display all courses
-    if 'username' not in session:
-        return redirect(url_for('login'))
     if flask.request.method == 'GET':
-        print("in the Get")
+        if 'username' not in session:
+            return redirect(url_for('login'))
         all_courses = course_collection.find({}, {"_id": 0})
         return render_template("courses.html", all_courses=all_courses)
 
 
 @app.route('/course', methods=['GET', 'POST'])
 def course():
-    # encoded_course_name = request.full_path.split("=", 1)[1]
-    # print("encoded_coursename -->", encoded_course_name)
-    course_name = base64.urlsafe_b64decode(request.full_path.split("=", 1)[1]).decode()
+    course_name = request.full_path.split("=")[1]
+    course_name = urllib.parse.unquote(course_name)
     print("coursename -->", course_name)
 
     selected_course = course_collection.find_one({"course_name": course_name})  # find course name
